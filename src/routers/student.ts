@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getMyProfile } from "../handlers/cours.js";
+import { getMyProfile } from "../handlers/student.js";
 import { CheckAuth } from "../middlewares/auth.js";
 import { enrollToTeacher, getMyEnrollments } from "../handlers/student.js";
 

@@ -240,7 +240,7 @@ export async function addTeacherRating(
         rating,
       });
     }
-    // Update book's average rating
+    // Update teacher's average rating
     const allRatings = await rateModel.find({ teacherId: teacherId });
     const avgRating =
       allRatings.reduce((sum: number, r: IRating) => sum + r.rating, 0) /
