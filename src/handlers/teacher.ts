@@ -101,27 +101,23 @@ export async function getTeachers(req: Request, res: Response): Promise<void> {
 /**
  * Get single teacher by ID
  */
-export async function getTeacherById(
-  req: Request,
-  res: Response,
-): Promise<void> {
-  try {
-    const teacher = await teacherModel
-      .findById(req.params.id)
-      .populate("subject")
-      .populate("levels");
+export const getTeacherById = async (req: Request, res: Response) => {
+  const teacher = await teacherModel
+    .findById(req.params.id)
+    .populate("subject")
+    .populate("levels");
 
-    if (!teacher) {
-      errorResponse(res, null, "Teacher not found", StatusCodes.NOT_FOUND);
-      return;
-    }
-
-    successResponse(res, teacher, "Teacher fetched successfully");
-  } catch (error) {
-    logger.error("Error fetching Teacher:", { error });
-    errorResponse(res, error, `Failed to fetch teacher ${req.params.id}`);
+  if (!teacher) {
+    const error = new Error("Teacher not found");
+    (error as any).statusCode = 404;
+    throw error;
   }
-}
+
+  res.json({
+    success: true,
+    data: teacher,
+  });
+};
 
 /**
  * Get popular teachers
