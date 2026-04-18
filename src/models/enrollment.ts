@@ -1,6 +1,7 @@
 import mongoose, { Schema, Types } from "mongoose";
+import { IEnrollment } from "../types/index.js";
 
-const enrollmentSchema = new Schema(
+const enrollmentSchema = new Schema<IEnrollment>(
   {
     student: {
       type: Schema.Types.ObjectId,
@@ -8,15 +9,10 @@ const enrollmentSchema = new Schema(
       required: true,
     },
 
-    teacher: {
-      type: Schema.Types.ObjectId,
-      ref: "Teacher",
-      required: true,
-    },
     course: {
       type: Types.ObjectId,
       ref: "Course",
-      reqiored: true,
+      required: true,
     },
 
     status: {
@@ -42,6 +38,6 @@ const enrollmentSchema = new Schema(
   },
 );
 
-enrollmentSchema.index({ student: 1, teacher: 1 }, { unique: true });
+enrollmentSchema.index({ student: 1, course: 1 }, { unique: true });
 
 export default mongoose.model("Enrollment", enrollmentSchema);

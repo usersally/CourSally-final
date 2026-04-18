@@ -76,3 +76,13 @@ export interface ApiPaginatedResponse<T = unknown> {
   data: T[];
   pagination: PaginationMeta;
 }
+
+export interface IEnrollment {
+  student: Types.ObjectId;
+  course: Types.ObjectId;
+  teacher: Types.ObjectId;
+
+  status: "active" | "completed" | "cancelled";
+  progress: number;
+  enrolledAt: Date;
+}

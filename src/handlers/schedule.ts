@@ -1,7 +1,7 @@
 import enrollment from "../models/enrollment.js";
 import { Schedule } from "../models/shedule.js";
 import { AuthenticatedRequest } from "../types/index.js";
-import e, { Request, Response } from "express";
+import { Request, Response } from "express";
 
 export const createSchedule = async (req: Request, res: Response) => {
   try {
