@@ -19,6 +19,7 @@ const baseUserSchema = z.object({
   avatar: z.string().url().optional(),
   password: basicPasswordSchema,
 });
+
 // Student registration schema
 export const registerStudentSchema = z.object({
   ...baseUserSchema,

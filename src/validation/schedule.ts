@@ -1,7 +1,7 @@
 import z from "zod";
 import { mongoIdSchema } from "./utils.js";
 
-const scheduleShema = z.object({
+const scheduleSchema = z.object({
   course: mongoIdSchema,
   teacher: mongoIdSchema,
 
@@ -21,4 +21,4 @@ const scheduleShema = z.object({
   isActive: z.boolean().optional(),
 });
 
-export default scheduleShema;
+export default scheduleSchema;
