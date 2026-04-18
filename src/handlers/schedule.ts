@@ -67,5 +67,48 @@ export const getStudentSchedule = async (req: Request, res: Response) => {
       course: { $in: courseIds },
       isActive: true,
     }).populate("course teacher");
-  } catch (error) {}
+    res.json({
+      success: true,
+      data: schedule,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch student schedules",
+      error,
+    });
+  }
+};
+
+//update schedule
+
+export const updateSchedule = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const schedule = await Schedule.findByIdAndUpdate(
+      id,
+      { $set: req.body },
+      { new: true },
+    );
+
+    if (!schedule) {
+      res.status(404).json({
+        success: false,
+        message: "Schedule not found",
+      });
+      return;
+    }
+
+    res.json({
+      success: true,
+      data: schedule,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to update schedule",
+      error,
+    });
+  }
 };
