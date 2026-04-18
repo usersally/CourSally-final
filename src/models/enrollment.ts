@@ -1,4 +1,4 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema, Types } from "mongoose";
 
 const enrollmentSchema = new Schema(
   {
@@ -12,6 +12,11 @@ const enrollmentSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "Teacher",
       required: true,
+    },
+    course: {
+      type: Types.ObjectId,
+      ref: "Course",
+      reqiored: true,
     },
 
     status: {

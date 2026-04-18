@@ -2,7 +2,7 @@ import { z } from "zod/v4";
 import { mongoIdSchema } from "./utils.js";
 
 /**
- * Base teacher schema (NO refine)
+ * Base teacher schema
  */
 const teacherBaseSchema = z.object({
   firstName: z.string().min(1, "Name is required"),
@@ -36,7 +36,7 @@ const teacherBaseSchema = z.object({
 });
 
 /**
- * Create teacher schema (WITH refine)
+ * Create teacher schema
  */
 export const teacherSchema = teacherBaseSchema.refine(
   (data) => {
@@ -51,7 +51,7 @@ export const teacherSchema = teacherBaseSchema.refine(
 );
 
 /**
- * Update teacher schema (NO refine ❗)
+ * Update teacher schema
  */
 export const teacherUpdateSchema = teacherBaseSchema.partial();
 
