@@ -50,14 +50,16 @@ export function validateParamsSchema<T>(schema: ZodSchema<T>) {
     next: NextFunction,
   ): Promise<void> {
     const parsed = schema.safeParse(req.params);
+
     if (parsed.success) {
-      next();
-    } else {
-      res.status(400).json({
-        success: false,
-        message: "Validation failed",
-        error: prettifyError(parsed.error),
-      });
+      req.params = parsed.data as any;
+      return next();
     }
+
+    res.status(400).json({
+      success: false,
+      message: "Validation failed",
+      error: prettifyError(parsed.error),
+    });
   };
 }

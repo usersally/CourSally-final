@@ -35,6 +35,7 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use("/auth", authRouter);
 app.use("/booking", bookingRouter);
 app.use("/teacher", teacherRouter);
+app.use("/rating");
 
 // Health check
 app.get("/health", (_req, res) => {

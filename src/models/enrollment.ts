@@ -4,7 +4,7 @@ import { IEnrollment } from "../types/index.js";
 const enrollmentSchema = new Schema<IEnrollment>(
   {
     student: {
-      type: Schema.Types.ObjectId,
+      type: Types.ObjectId,
       ref: "User",
       required: true,
     },
