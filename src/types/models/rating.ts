@@ -6,4 +6,5 @@ export interface IRating extends BaseDocument {
   ratedBy: Types.ObjectId;
   teacherId: Types.ObjectId;
   rating: number;
+  comment?: string;
 }

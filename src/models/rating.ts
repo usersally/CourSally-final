@@ -23,6 +23,10 @@ const rateSchema = new Schema<IRating>(
       max: 5,
       required: true,
     },
+    comment: {
+      type: String,
+      required: false,
+    },
   },
   {
     timestamps: true,

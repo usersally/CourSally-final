@@ -1,12 +1,10 @@
 import { Request, Response } from "express";
-import Rating from "../models/rating.js";
-import Enrollment from "../models/enrollment.js";
 import { AuthenticatedRequest } from "../types/index.js";
+import enrollment from "../models/enrollment.js";
+import rateModel from "../models/rating.js";
 
-/**
- * CREATE or UPDATE rating
- * A student can rate a teacher only if enrolled
- */
+// create or update rating
+
 export const createRating = async (req: Request, res: Response) => {
   try {
     const authReq = req as AuthenticatedRequest;
@@ -15,8 +13,8 @@ export const createRating = async (req: Request, res: Response) => {
 
     const studentId = authReq.user._id;
 
-    // 🔒 Check if student is enrolled with this teacher (optional but recommended)
-    const isEnrolled = await Enrollment.findOne({
+    //check if student is enrolled with this teacher
+    const isEnrolled = await enrollment.findOne({
       student: studentId,
       teacher: teacherId,
     });
@@ -28,37 +26,32 @@ export const createRating = async (req: Request, res: Response) => {
       });
     }
 
-    // 🔄 Check if rating already exists
-    const existingRating = await Rating.findOne({
+    //check if rating already exists :
+    const existingRating = await rateModel.findOne({
       student: studentId,
       teacher: teacherId,
     });
-
     let ratingDoc;
 
     if (existingRating) {
-      // update existing rating
-      ratingDoc = await Rating.findByIdAndUpdate(
+      //update existing rating
+      ratingDoc = await rateModel.findByIdAndUpdate(
         existingRating._id,
         { rating, comment },
         { new: true },
       );
     } else {
-      // create new rating
-      ratingDoc = await Rating.create({
+      //create new rating
+      ratingDoc = await rateModel.create({
         student: studentId,
-        teacher: teacherId,
+        teacherId: teacherId,
         rating,
         comment,
       });
     }
-
-    res.status(200).json({
-      success: true,
-      data: ratingDoc,
-    });
+    return res.json({ success: true });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: "Failed to create rating",
       error,
@@ -66,15 +59,15 @@ export const createRating = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * GET all ratings for a teacher
- */
+// get all ratings for a teacher
+
 export const getTeacherRatings = async (req: Request, res: Response) => {
   try {
     const { teacherId } = req.params;
 
-    const ratings = await Rating.find({ teacher: teacherId })
-      .populate("student", "name")
+    const ratings = await rateModel
+      .find({ tecaher: teacherId })
+      .populate("student", "userName")
       .sort({ createdAt: -1 });
 
     res.json({
@@ -85,82 +78,6 @@ export const getTeacherRatings = async (req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       message: "Failed to fetch ratings",
-      error,
-    });
-  }
-};
-
-/**
- * UPDATE rating (only owner can update)
- */
-export const updateRating = async (req: Request, res: Response) => {
-  try {
-    const authReq = req as AuthenticatedRequest;
-
-    const { id } = req.params;
-
-    const rating = await Rating.findOne({
-      _id: id,
-      student: authReq.user._id,
-    });
-
-    if (!rating) {
-      return res.status(404).json({
-        success: false,
-        message: "Rating not found",
-      });
-    }
-
-    const updated = await Rating.findByIdAndUpdate(
-      id,
-      { $set: req.body },
-      { new: true },
-    );
-
-    res.json({
-      success: true,
-      data: updated,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Failed to update rating",
-      error,
-    });
-  }
-};
-
-/**
- * DELETE rating (only owner can delete)
- */
-export const deleteRating = async (req: Request, res: Response) => {
-  try {
-    const authReq = req as AuthenticatedRequest;
-
-    const { id } = req.params;
-
-    const rating = await Rating.findOne({
-      _id: id,
-      student: authReq.user._id,
-    });
-
-    if (!rating) {
-      return res.status(404).json({
-        success: false,
-        message: "Rating not found",
-      });
-    }
-
-    await Rating.findByIdAndDelete(id);
-
-    res.json({
-      success: true,
-      message: "Rating deleted",
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Failed to delete rating",
       error,
     });
   }
