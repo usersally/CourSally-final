@@ -112,3 +112,23 @@ export const updateSchedule = async (req: Request, res: Response) => {
     });
   }
 };
+
+// delete schedule :
+export const deleteSchedule = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    await Schedule.findByIdAndUpdate(id, { isActive: false }, { new: true });
+
+    res.json({
+      success: true,
+      message: "schedule deactivated",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to delete schedule",
+      error,
+    });
+  }
+};
