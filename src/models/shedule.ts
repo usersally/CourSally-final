@@ -16,7 +16,7 @@ const scheduleShema = new Schema(
     dayOfWeek: {
       type: Number,
       min: 0,
-      max: 6,
+      max: 7,
       required: true,
     },
 

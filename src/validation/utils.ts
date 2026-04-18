@@ -10,18 +10,21 @@ export const isPdfFile = (value: string): boolean => {
 // validate pdf
 export const createUserSchema = z
   .object({
-    role: z.enum(["admin", "user", "teacher"]),
+    role: z.enum(["admin", "student", "teacher"]),
     cv: z.string().optional(),
   })
-  .refine((data) => {
-    if (data.role === "teacher") {
-      return data.cv && isPdfFile(data.cv);
-    }
-    return true;
-  }, {
-    message: "CV is required and must be a PDF for teachers",
-    path: ["cv"],
-  });
+  .refine(
+    (data) => {
+      if (data.role === "teacher") {
+        return data.cv && isPdfFile(data.cv);
+      }
+      return true;
+    },
+    {
+      message: "CV is required and must be a PDF for teachers",
+      path: ["cv"],
+    },
+  );
 
 export const paginationSchema = z.object({
   page: z
