@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { createBookingHandler } from "../handlers/booking.js";
+import { createBooking } from "../handlers/booking.js";
 
 const bookingRouter = Router();
-bookingRouter.post("/", createBookingHandler);
+bookingRouter.post("/", createBooking);
 
 export default bookingRouter;
