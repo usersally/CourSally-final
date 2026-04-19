@@ -17,19 +17,20 @@ import {
 
 const paymentRouter = Router();
 
+
+/**
+ * GET all payments (with filters + pagination)
+*/
+paymentRouter.get("/", validateQuerySchema(paymentQuerySchema), getPaymentById);
 /**
  * CREATE payment
  */
 paymentRouter.post(
-  "/",
+  "/:id",
+    validateParamsSchema(paymentParamsSchema),
   validateBodySchema(createPaymentSchema),
   createPayement,
 );
-
-/**
- * GET all payments (with filters + pagination)
- */
-paymentRouter.get("/", validateQuerySchema(paymentQuerySchema), getPaymentById);
 
 /**
  * GET single payment

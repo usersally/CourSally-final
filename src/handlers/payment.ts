@@ -2,13 +2,14 @@ import { Types } from "mongoose";
 import { Course } from "../models/cours.js";
 import enrollment from "../models/enrollment.js";
 import { Payment } from "../models/payment.js";
-import { AuthenticatedRequest } from "../types/index.js";
 import { Request, Response } from "express";
+import { AuthenticatedRequest } from "../types/index.js";
 
 // create payment
-export async function createPayement(req: AuthenticatedRequest, res: Response) {
+export async function createPayement(req: Request, res: Response) {
   const courseId = req.params.id as string;
-  const user = req.user;
+  const authReq = req as AuthenticatedRequest;
+  const user = authReq.user;
 
   const course = await Course.findById(courseId);
 

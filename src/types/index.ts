@@ -1,5 +1,5 @@
 import { Document, Types } from "mongoose";
-import { Request } from "express-serve-static-core";
+import { Request } from "express";
 import { UserRole } from "./common.js";
 
 export interface BaseDocument extends Document {
