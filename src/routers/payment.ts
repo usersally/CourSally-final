@@ -15,26 +15,38 @@ import {
   paymentQuerySchema,
 } from "../validation/payment.js";
 
-const router = Router();
+const paymentRouter = Router();
 
 /**
  * CREATE payment
  */
-router.post("/", validateBodySchema(createPaymentSchema), createPayement);
+paymentRouter.post(
+  "/",
+  validateBodySchema(createPaymentSchema),
+  createPayement,
+);
 
 /**
  * GET all payments (with filters + pagination)
  */
-router.get("/", validateQuerySchema(paymentQuerySchema), getPaymentById);
+paymentRouter.get("/", validateQuerySchema(paymentQuerySchema), getPaymentById);
 
 /**
  * GET single payment
  */
-router.get("/:id", validateParamsSchema(paymentParamsSchema), getPaymentById);
+paymentRouter.get(
+  "/:id",
+  validateParamsSchema(paymentParamsSchema),
+  getPaymentById,
+);
 
 /**
  * DELETE payment
  */
-router.delete("/:id", validateParamsSchema(paymentParamsSchema), deletePayment);
+paymentRouter.delete(
+  "/:id",
+  validateParamsSchema(paymentParamsSchema),
+  deletePayment,
+);
 
-export default router;
+export default paymentRouter;

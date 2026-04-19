@@ -10,19 +10,24 @@ import { ratingSchema } from "../validation/rating.js";
 import { validateBodySchema } from "../middlewares/validations.js";
 import { CheckAuth } from "../middlewares/auth.js";
 
-const router = Router();
+const ratingRouter = Router();
 
 //CREATE rating (student gives rating to teacher)
 
-router.post("/", CheckAuth, validateBodySchema(ratingSchema), createRating);
+ratingRouter.post(
+  "/",
+  CheckAuth,
+  validateBodySchema(ratingSchema),
+  createRating,
+);
 
 //GET ratings for a teacher
 
-router.get("/teacher/:teacherId", getTeacherRatings);
+ratingRouter.get("/teacher/:teacherId", getTeacherRatings);
 
 //UPDATE rating (same student modifies rating)
 
-router.put(
+ratingRouter.put(
   "/:id",
   CheckAuth,
   validateBodySchema(ratingSchema.partial()),
@@ -31,6 +36,6 @@ router.put(
 
 // DELETE rating
 
-router.delete("/:id", CheckAuth, deleteRating);
+ratingRouter.delete("/:id", CheckAuth, deleteRating);
 
-export default router;
+export default ratingRouter;

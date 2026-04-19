@@ -13,3 +13,5 @@ studentRouter.post("/enroll/:teacherId", CheckAuth, enrollToTeacher);
 
 // Get my enrolled teachers
 studentRouter.get("/enrollments", CheckAuth, getMyEnrollments);
+
+export default studentRouter;

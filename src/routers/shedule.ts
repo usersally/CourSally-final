@@ -11,23 +11,28 @@ import scheduleSchema from "../validation/schedule.js";
 import { validateBodySchema } from "../middlewares/validations.js"; // your Zod middleware
 import { CheckAuth } from "../middlewares/auth.js"; // auth middleware
 
-const router = Router();
+const scheduleRouter = Router();
 
 // CREATE schedule (teacher/admin)
 
-router.post("/", CheckAuth, validateBodySchema(scheduleSchema), createSchedule);
+scheduleRouter.post(
+  "/",
+  CheckAuth,
+  validateBodySchema(scheduleSchema),
+  createSchedule,
+);
 
 // GET teacher schedules (calendar view)
 
-router.get("/teacher", CheckAuth, getTeacherSchedule);
+scheduleRouter.get("/teacher", CheckAuth, getTeacherSchedule);
 
 // GET student schedules (based on enrollments)
 
-router.get("/student", CheckAuth, getStudentSchedule);
+scheduleRouter.get("/student", CheckAuth, getStudentSchedule);
 
 // UPDATE schedule
 
-router.put(
+scheduleRouter.put(
   "/:id",
   CheckAuth,
   validateBodySchema(scheduleSchema.partial()),
@@ -36,6 +41,6 @@ router.put(
 
 // DELETE  schedule
 
-router.delete("/:id", CheckAuth, deleteSchedule);
+scheduleRouter.delete("/:id", CheckAuth, deleteSchedule);
 
-export default router;
+export default scheduleRouter;

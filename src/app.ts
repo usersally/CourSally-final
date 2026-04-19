@@ -8,6 +8,10 @@ import morgan from "morgan";
 import { StatusCodes } from "http-status-codes";
 import bookingRouter from "./routers/booking.js";
 import teacherRouter from "./routers/teacher.js";
+import ratingRouter from "./routers/rating.js";
+import scheduleRouter from "./routers/shedule.js";
+import studentRouter from "./routers/student.js";
+import courseRouter from "./routers/cours.js";
 
 const app = express();
 
@@ -35,7 +39,10 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use("/auth", authRouter);
 app.use("/booking", bookingRouter);
 app.use("/teacher", teacherRouter);
-app.use("/rating");
+app.use("/rating", ratingRouter);
+app.use("/schedule", scheduleRouter);
+app.use("/student", studentRouter);
+app.use("/course", courseRouter);
 
 // Health check
 app.get("/health", (_req, res) => {

@@ -24,7 +24,7 @@ export const createPaymentSchema = z.object({
 });
 
 /**
- * Update Payment (PATCH/PUT)
+ * Update Payment (PUT)
  * (all fields optional)
  */
 export const updatePaymentSchema = createPaymentSchema.partial();
