@@ -16,11 +16,11 @@ const bookingSchema = new Schema(
       required: true,
     },
     startTime: {
-      type: Date,
+      type: String,
       required: true,
     },
     endTime: {
-      type: Date,
+      type: String,
       required: true,
     },
     price: {
@@ -30,6 +30,11 @@ const bookingSchema = new Schema(
     paymentType: {
       type: String,
       enum: ["single", "monthly"],
+      required: true,
+    },
+    paymentMethod: {
+      type: String,
+      enum: ["cash", "card"],
       required: true,
     },
   },

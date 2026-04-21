@@ -4,7 +4,16 @@ import Booking from "../models/booking.js";
 // Create booking
 export const createBooking = async (req: Request, res: Response) => {
   try {
-    const { teacherId, date, startTime } = req.body;
+    const {
+      teacherId,
+      date,
+      startTime,
+      paymentType,
+      paymentMethod,
+      endTime,
+      price,
+      studentId,
+    } = req.body;
 
     // check if slot already booked
     const existing = await Booking.findOne({
@@ -21,7 +30,16 @@ export const createBooking = async (req: Request, res: Response) => {
       return;
     }
 
-    const booking = await Booking.create(req.body);
+    const booking = await Booking.create({
+      teacherId,
+      studentId,
+      date,
+      startTime,
+      endTime,
+      price,
+      paymentType,
+      paymentMethod,
+    });
 
     res.status(201).json({
       success: true,

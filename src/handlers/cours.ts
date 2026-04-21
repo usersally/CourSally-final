@@ -10,7 +10,7 @@ export const createCourse = async (req: Request, res: Response) => {
     teacher: user._id,
   });
 
-  res.status(201).json({
+  res.status(200).json({
     success: true,
     data: course,
   });
@@ -20,7 +20,7 @@ export const createCourse = async (req: Request, res: Response) => {
 export const getCourses = async (res: Response) => {
   const courses = await Course.find().populate("teacher");
 
-  res.json({
+  return res.json({
     success: true,
     data: courses,
   });

@@ -12,12 +12,13 @@ import ratingRouter from "./routers/rating.js";
 import scheduleRouter from "./routers/shedule.js";
 import studentRouter from "./routers/student.js";
 import courseRouter from "./routers/cours.js";
+import paymentRouter from "./routers/payment.js";
 
 const app = express();
 
 // middlewares
 app.use(helmet());
-const allowedOrigins = (process.env.FRONTEND_DOMAIN || "http://localhost:5173")
+const allowedOrigins = (process.env.FRONTEND_DOMAIN || "http://localhost:3001")
   .split(",")
   .map((o) => o.trim());
 
@@ -25,8 +26,13 @@ app.use(
   cors({
     credentials: true,
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) callback(null, true);
-      else callback(new Error(`Cors: origin ${origin} not allowed`));
+      console.log("Origin:", origin);
+
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error(`Cors: origin ${origin} not allowed`));
+      }
     },
   }),
 );
@@ -43,6 +49,7 @@ app.use("/rating", ratingRouter);
 app.use("/schedule", scheduleRouter);
 app.use("/student", studentRouter);
 app.use("/course", courseRouter);
+app.use("/api/payment", paymentRouter);
 
 // Health check
 app.get("/health", (_req, res) => {

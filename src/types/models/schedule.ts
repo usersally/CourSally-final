@@ -6,10 +6,10 @@ export interface ISchedule {
 
   dayOfWeek: Number;
 
-  startTime: Number;
+  startTime: String;
   endTime: Number;
 
-  startDate: Date;
+  startDate: String;
   endDate: Date;
 
   isActive: Boolean;
