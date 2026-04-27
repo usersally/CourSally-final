@@ -18,7 +18,7 @@ const app = express();
 
 // middlewares
 app.use(helmet());
-const allowedOrigins = (process.env.FRONTEND_DOMAIN || "http://localhost:3001")
+const allowedOrigins = (process.env.FRONTEND_DOMAIN || "http://localhost:3000")
   .split(",")
   .map((o) => o.trim());
 
@@ -49,7 +49,7 @@ app.use("/rating", ratingRouter);
 app.use("/schedule", scheduleRouter);
 app.use("/student", studentRouter);
 app.use("/course", courseRouter);
-app.use("/api/payment", paymentRouter);
+app.use("/payment", paymentRouter);
 
 // Health check
 app.get("/health", (_req, res) => {

@@ -18,7 +18,7 @@ export interface IUser {
   lastName: string;
   email: string;
   password: string;
-  phone?: string;
+  phoneNumber?: string;
   avatar?: string;
   cv?: string;
   role: UserRole;

@@ -15,7 +15,7 @@ export const loginSchema = z.object({
 const baseUserSchema = z.object({
   firstName: z.string().min(3).max(70),
   lastName: z.string().min(3).max(70),
-  phone: z.string().optional(),
+  phoneNumber: z.string().optional(),
   avatar: z.string().url().optional(),
   password: basicPasswordSchema,
 });
@@ -61,7 +61,7 @@ export const profileUpdateSchema = z.object({
     .min(3, "Last name must have at least 3 letters")
     .max(70, "Last name must have at most 70 letters")
     .optional(),
-  phone: z.string().optional().or(z.literal("")),
+  phoneNumber: z.string().optional().or(z.literal("")),
   avatar: z
     .string()
     .url("Avatar must be a valid URL")

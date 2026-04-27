@@ -21,8 +21,13 @@ const userSchema = new Schema<IUserDocument>(
     },
 
     password: { type: String, required: true },
-    phone: { type: String, required: true },
+    phoneNumber: { type: String, required: true },
     avatar: String,
+    role: {
+      type: String,
+      enum: ["student", "teacher"],
+      default: "student",
+    },
   },
   options,
 );
