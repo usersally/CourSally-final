@@ -8,6 +8,7 @@ import {
   getAllCourses,
   deleteCourseAdmin,
   updateUserRole,
+  updateTeacherCvStatus,
 } from "../handlers/admin.js";
 
 const adminRouter = Router();
@@ -26,5 +27,8 @@ adminRouter.patch("/users/:id/role", updateUserRole);
 // Courses
 adminRouter.get("/courses", getAllCourses);
 adminRouter.delete("/courses/:id", deleteCourseAdmin);
+
+// Teacher CV approval
+adminRouter.patch("/teachers/:id/cv-status", updateTeacherCvStatus);
 
 export default adminRouter;

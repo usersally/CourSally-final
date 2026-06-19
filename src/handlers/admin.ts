@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
 import userModel from "../models/user.js";
+import teacherModel from "../models/teacher.js";
 import { Course } from "../models/cours.js";
+import { sendTeacherCvEmail } from "../utils/email.js";
 
 // GET /admin/stats
 export const getAdminStats = async (_req: Request, res: Response) => {
@@ -111,6 +113,56 @@ export const deleteCourseAdmin = async (req: Request, res: Response) => {
     return res.json({
       success: true,
       message: "Course deleted successfully",
+    });
+  } catch (err: any) {
+    return res.status(500).json({
+      success: false,
+      message: err.message,
+    });
+  }
+};
+
+// PATCH /admin/teachers/:id/cv-status
+export const updateTeacherCvStatus = async (req: Request, res: Response) => {
+  try {
+    const { status } = req.body as { status?: string };
+
+    if (!["approved", "rejected"].includes(status ?? "")) {
+      return res.status(400).json({
+        success: false,
+        message: "Status must be 'approved' or 'rejected'",
+      });
+    }
+
+    const teacher = await teacherModel
+      .findByIdAndUpdate(
+        req.params.id,
+        { $set: { cvStatus: status } },
+        { new: true },
+      )
+      .select("-password");
+
+    if (!teacher) {
+      return res.status(404).json({
+        success: false,
+        message: "Teacher not found",
+      });
+    }
+
+    try {
+      await sendTeacherCvEmail(
+        teacher.email,
+        teacher.firstName,
+        status as "approved" | "rejected",
+      );
+    } catch (emailErr) {
+      console.error("Failed to send CV status email:", emailErr);
+    }
+
+    return res.json({
+      success: true,
+      message: `Teacher CV ${status}`,
+      data: teacher,
     });
   } catch (err: any) {
     return res.status(500).json({

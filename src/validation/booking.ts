@@ -11,7 +11,7 @@ export const mongoIdSchema = z
 //  create booking validation
 export const createBookingSchema = z.object({
   teacherId: mongoIdSchema,
-  studentId: mongoIdSchema,
+  studentId: mongoIdSchema.optional(),
 
   date: z.string().refine((val) => !isNaN(Date.parse(val)), {
     message: "Invalid date format",

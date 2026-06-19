@@ -75,21 +75,37 @@ export function isAdmin(req: Request, res: Response, next: NextFunction): void {
   }
 }
 
-export function isTeacher(
+export function isApprovedTeacher(
   req: Request,
   res: Response,
   next: NextFunction,
 ): void {
   const authReq = req as AuthenticatedRequest;
+  const user = authReq.user as AuthenticatedRequest["user"] & {
+    cvStatus?: string;
+  };
 
-  if (authReq.user?.role === "teacher") {
-    next();
-  } else {
+  if (authReq.user?.role !== "teacher") {
     res.status(401).json({
       success: false,
       message: "You are not a teacher, you can't access this route",
     });
+    return;
   }
+
+  if (user.cvStatus !== "approved") {
+    res.status(403).json({
+      success: false,
+      message:
+        user.cvStatus === "rejected"
+          ? "Your teacher application was rejected"
+          : "Your CV is pending admin approval",
+      cvStatus: user.cvStatus ?? "pending",
+    });
+    return;
+  }
+
+  next();
 }
 
 export function isStudent(

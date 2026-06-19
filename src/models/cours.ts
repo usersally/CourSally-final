@@ -6,7 +6,7 @@ export type CourseLevel = (typeof LEVEL_VALUES)[number];
 
 export const GRADE_VALUES: Record<CourseLevel, string[]> = {
   Primary: ["Year 1", "Year 2", "Year 3", "Year 4", "Year 5"],
-  Secondary: ["Year 1", "Year 2", "Year 3", "BE"],
+  Secondary: ["Year 1", "Year 2", "Year 3", "BEM"],
   "High School": ["Year 1", "Year 2", "BAC"],
 };
 

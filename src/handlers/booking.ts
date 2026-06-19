@@ -1,9 +1,25 @@
 import type { Request, Response } from "express";
 import Booking from "../models/booking.js";
+import { AuthenticatedRequest } from "../types/express.js";
+import teacherModel from "../models/teacher.js";
+
+function mapBooking(doc: Record<string, unknown>) {
+  const teacher = doc.teacherId as Record<string, unknown> | null;
+  return {
+    ...doc,
+    teacher: teacher
+      ? {
+          ...teacher,
+          avatar: teacher.avatar ?? teacher.avatarUrl,
+        }
+      : null,
+  };
+}
 
 // Create booking
 export const createBooking = async (req: Request, res: Response) => {
   try {
+    const authReq = req as AuthenticatedRequest;
     const {
       teacherId,
       courseId,
@@ -13,10 +29,32 @@ export const createBooking = async (req: Request, res: Response) => {
       price,
       paymentType,
       paymentMethod,
-      studentId,
+      studentId: bodyStudentId,
     } = req.body;
 
-    // Check if slot already booked
+    const studentId = bodyStudentId ?? authReq.user?._id?.toString();
+
+    if (!studentId) {
+      res.status(401).json({
+        success: false,
+        message: "Student authentication required",
+      });
+      return;
+    }
+
+    const teacher = await teacherModel.findOne({
+      _id: teacherId,
+      cvStatus: "approved",
+    });
+
+    if (!teacher) {
+      res.status(404).json({
+        success: false,
+        message: "Teacher not found or not available",
+      });
+      return;
+    }
+
     const existing = await Booking.findOne({ teacherId, date, startTime });
 
     if (existing) {
@@ -56,20 +94,27 @@ export const createBooking = async (req: Request, res: Response) => {
 // Get bookings for a student (with populate for teacher + course)
 export const getBookings = async (req: Request, res: Response) => {
   try {
+    const authReq = req as AuthenticatedRequest;
     const { page = 1, limit = 10, teacherId, studentId, status } = req.query;
 
     const pageNum = Number(page) || 1;
     const limitNum = Number(limit) || 10;
 
-    const filter: any = {};
+    const filter: Record<string, unknown> = {};
     if (teacherId) filter.teacherId = teacherId;
-    if (studentId) filter.studentId = studentId;
     if (status) filter.status = status;
+
+    // Auto-scope to logged-in student when no explicit studentId
+    if (studentId) {
+      filter.studentId = studentId;
+    } else if (authReq.user?.role === "student") {
+      filter.studentId = authReq.user._id.toString();
+    }
 
     const skip = (pageNum - 1) * limitNum;
 
     const bookings = await Booking.find(filter)
-      .populate("teacherId", "firstName lastName avatarUrl subject")
+      .populate("teacherId", "firstName lastName avatar subject")
       .populate("courseId", "title subject")
       .skip(skip)
       .limit(limitNum)
@@ -80,7 +125,7 @@ export const getBookings = async (req: Request, res: Response) => {
 
     res.json({
       success: true,
-      data: bookings,
+      data: bookings.map((b) => mapBooking(b as Record<string, unknown>)),
       page: pageNum,
       limit: limitNum,
       total,

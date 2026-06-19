@@ -1,13 +1,53 @@
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import userModel from "../models/user.js";
+import teacherModel from "../models/teacher.js";
+import studentModel from "../models/student.js";
 import { AuthenticatedRequest } from "../types/express.js";
 import { logger } from "../utils/logger.js";
 
 //register
 export const register = async (req: Request, res: Response) => {
   try {
-    const user = await userModel.create(req.body);
+    const {
+      firstName,
+      lastName,
+      email,
+      password,
+      phoneNumber,
+      role,
+      CV,
+      cv,
+      avatar,
+    } = req.body;
+
+    const baseFields = {
+      firstName,
+      lastName,
+      email,
+      password,
+      phoneNumber,
+      ...(avatar ? { avatar } : {}),
+    };
+
+    let user;
+
+    if (role === "teacher") {
+      user = await teacherModel.create({
+        ...baseFields,
+        cv: cv || CV || undefined,
+        cvStatus: "pending",
+      });
+    } else if (role === "student") {
+      user = await studentModel.create({
+        ...baseFields,
+        userName: email.split("@")[0],
+        level: "Not set",
+        enrollementDate: new Date().toISOString().split("T")[0],
+      });
+    } else {
+      user = await userModel.create({ ...baseFields, role: "admin" });
+    }
 
     const token = jwt.sign(
       {
@@ -76,6 +116,30 @@ export const login = async (req: Request, res: Response) => {
         success: false,
         message: "Invalid email or password",
       });
+    }
+
+    // Block unapproved teachers from logging in
+    if (user.role === "teacher") {
+      const teacherUser = user as typeof user & { cvStatus?: string };
+      const cvStatus = teacherUser.cvStatus ?? "pending";
+
+      if (cvStatus === "pending") {
+        return res.status(403).json({
+          success: false,
+          message:
+            "Your CV is under review. You will receive an email once approved.",
+          cvStatus: "pending",
+        });
+      }
+
+      if (cvStatus === "rejected") {
+        return res.status(403).json({
+          success: false,
+          message:
+            "Your teacher application was not approved. Please contact support.",
+          cvStatus: "rejected",
+        });
+      }
     }
 
     //  Create JWT

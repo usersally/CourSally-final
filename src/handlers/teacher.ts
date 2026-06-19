@@ -44,8 +44,8 @@ export async function getTeachers(req: Request, res: Response): Promise<void> {
       status,
     } = parsedReq.parsedQuery;
 
-    // Build filter
-    const filter: Record<string, unknown> = {};
+    // Build filter — only show approved teachers to students
+    const filter: Record<string, unknown> = { cvStatus: "approved" };
 
     if (search) {
       filter.$text = { $search: search };
@@ -64,7 +64,7 @@ export async function getTeachers(req: Request, res: Response): Promise<void> {
     }
 
     if (status) {
-      filter.status = status;
+      filter.inSchool = status === "available";
     }
 
     const [teachers, total] = await Promise.all([
@@ -102,7 +102,10 @@ export async function getTeacherById(
   res: Response,
 ): Promise<void> {
   try {
-    const teacher = await teacherModel.findById(req.params.id);
+    const teacher = await teacherModel.findOne({
+      _id: req.params.id,
+      cvStatus: "approved",
+    });
 
     if (!teacher) {
       errorResponse(res, null, "Teacher not found", StatusCodes.NOT_FOUND);
@@ -127,7 +130,7 @@ export async function getPopularTeachers(
     const limit = parseInt(req.query.limit as string) || 10;
 
     const teachers = await teacherModel
-      .find({ status: "available" })
+      .find({ cvStatus: "approved" })
       .sort({ ratingCount: -1 })
       .limit(limit);
 

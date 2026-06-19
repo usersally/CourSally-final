@@ -36,7 +36,7 @@ export interface ITeacher extends IUser {
   availability?: string;
   inSchool: boolean;
   keywords: string;
-  status: "pending" | "approved" | "rejected";
+  cvStatus: "pending" | "approved" | "rejected";
 }
 
 export interface IUserDocument extends IUser, BaseDocument {

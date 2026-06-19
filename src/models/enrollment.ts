@@ -12,7 +12,11 @@ const enrollmentSchema = new Schema<IEnrollment>(
     course: {
       type: Types.ObjectId,
       ref: "Course",
-      required: true,
+    },
+
+    teacher: {
+      type: Types.ObjectId,
+      ref: "User",
     },
 
     status: {
@@ -38,6 +42,7 @@ const enrollmentSchema = new Schema<IEnrollment>(
   },
 );
 
-enrollmentSchema.index({ student: 1, course: 1 }, { unique: true });
+enrollmentSchema.index({ student: 1, teacher: 1 }, { unique: true, sparse: true });
+enrollmentSchema.index({ student: 1, course: 1 }, { unique: true, sparse: true });
 
 export default mongoose.model("Enrollment", enrollmentSchema);
