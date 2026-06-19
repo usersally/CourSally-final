@@ -30,12 +30,12 @@ export const getDashboard = async (req: Request, res: Response) => {
       // Cancelled bookings
       Booking.countDocuments({ status: "cancelled" }),
 
-      // Top 10 teachers by rating count — populate user name
+      // Top 10 teachers by rating count (names are on the User discriminator doc)
       teacherModel
         .find()
+        .select("firstName lastName ratingCount avgRating")
         .sort({ ratingCount: -1 })
         .limit(10)
-        .populate("user", "firstName lastName")
         .lean(),
 
       // Bookings per month for the last 7 months (expense vs profit chart)
@@ -84,10 +84,8 @@ export const getDashboard = async (req: Request, res: Response) => {
 
     // ── Format top teachers ──
     const formattedTeachers = topTeachers.map((t: any) => {
-      const author = t.author as any;
-      const name = author
-        ? `${author.firstName ?? ""} ${author.lastName ?? ""}`.trim()
-        : "Unknown";
+      const name =
+        `${t.firstName ?? ""} ${t.lastName ?? ""}`.trim() || "Unknown";
       return {
         name,
         sessions: t.ratingCount ?? 0,
