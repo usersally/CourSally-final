@@ -7,7 +7,7 @@ import { AuthenticatedRequest } from "../types/index.js";
 
 // create payment
 export async function createPayement(req: Request, res: Response) {
-  const courseId = req.params.id as string;
+  const courseId = req.params._id as string;
   const authReq = req as AuthenticatedRequest;
   const user = authReq.user;
 

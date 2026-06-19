@@ -59,11 +59,6 @@ export async function CheckAuth(
     next();
   } catch (err) {
     errorResponse(res, err, "Error in validating token");
-    // res.status(401).json({
-    //   success: false,
-    //   message: "Error in validating token",
-    //   error: err instanceof Error ? err.message : String(err),
-    // });
   }
 }
 
@@ -109,7 +104,7 @@ export function isStudent(
   } else {
     res.status(401).json({
       success: false,
-      message: "You are not a teacher, you can't access this route",
+      message: "You are not a student, you can't access this route",
     });
   }
 }

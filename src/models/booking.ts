@@ -11,6 +11,11 @@ const bookingSchema = new Schema(
       ref: "teacher",
       required: true,
     },
+    courseId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Course",
+      required: false,
+    },
     date: {
       type: Date,
       required: true,
@@ -37,13 +42,18 @@ const bookingSchema = new Schema(
       enum: ["cash", "card"],
       required: true,
     },
+    status: {
+      type: String,
+      enum: ["upcoming", "completed", "cancelled"],
+      default: "upcoming",
+    },
   },
   {
     timestamps: true,
   },
 );
 
-//Prevent double booking
+// Prevent double booking
 bookingSchema.index({ teacherId: 1, date: 1, startTime: 1 }, { unique: true });
 
 const Booking = mongoose.model("Booking", bookingSchema);

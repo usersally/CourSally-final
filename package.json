@@ -1,5 +1,5 @@
 {
-  "name": "coursally",
+  "name": "courSally",
   "version": "1.0.0",
   "description": "booking teachers in-person backend with ts, express, MongoDB",
   "main": "dist/index.js",

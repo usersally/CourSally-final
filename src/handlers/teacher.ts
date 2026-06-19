@@ -103,7 +103,7 @@ export async function getTeachers(req: Request, res: Response): Promise<void> {
  */
 export const getTeacherById = async (req: Request, res: Response) => {
   const teacher = await teacherModel
-    .findById(req.params.id)
+    .findById(req.params._id)
     .populate("subject")
     .populate("levels");
 
@@ -150,7 +150,7 @@ export async function deleteTeacher(
   res: Response,
 ): Promise<void> {
   try {
-    const teacher = await teacherModel.findByIdAndDelete(req.params.id);
+    const teacher = await teacherModel.findByIdAndDelete(req.params._id);
 
     if (!teacher) {
       errorResponse(res, null, "Teacher not found", StatusCodes.NOT_FOUND);
@@ -160,7 +160,7 @@ export async function deleteTeacher(
     successResponse(res, null, "Teacher deleted successfully");
   } catch (error) {
     logger.error("Error deleting teacher:", { error });
-    errorResponse(res, error, `Failed to delete teacher ${req.params.id}`);
+    errorResponse(res, error, `Failed to delete teacher ${req.params._id}`);
   }
 }
 
@@ -174,7 +174,7 @@ export async function updateTeacher(
 ): Promise<void> {
   try {
     const teacher = await teacherModel
-      .findByIdAndUpdate(req.params.id, { $set: req.body }, { new: true })
+      .findByIdAndUpdate(req.params._id, { $set: req.body }, { new: true })
       .populate("")
       .populate("");
 
@@ -186,7 +186,7 @@ export async function updateTeacher(
     successResponse(res, teacher, "teacher updated successfully");
   } catch (error) {
     logger.error("Error updating teacher:", { error });
-    errorResponse(res, error, `Failed to update teacher ${req.params.id}`);
+    errorResponse(res, error, `Failed to update teacher ${req.params._id}`);
   }
 }
 
@@ -199,9 +199,15 @@ export async function addTeacherRating(
 ): Promise<void> {
   try {
     const authReq = req as AuthenticatedRequest;
-    const { id: teacherId } = req.params;
+    const { id } = req.params;
+    const teacherId = Array.isArray(id) ? id[0] : id;
     const { rating } = req.body as { rating: number };
     const userId = authReq.user._id;
+
+    if (!teacherId) {
+      errorResponse(res, null, "Teacher ID is required", StatusCodes.BAD_REQUEST);
+      return;
+    }
 
     // Check if user has borrowed/purchased this book
     const hasBooked = await Booking.exists({
@@ -236,7 +242,7 @@ export async function addTeacherRating(
     } else {
       ratingDoc = await rateModel.create({
         ratedBy: userId,
-        teacherId: new mongoose.Types.ObjectId(),
+        teacherId: new mongoose.Types.ObjectId(teacherId),
         rating,
       });
     }

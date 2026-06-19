@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import userModel from "../models/user.js";
 import { AuthenticatedRequest } from "../types/express.js";
+import { logger } from "../utils/logger.js";
 
 //register
 export const register = async (req: Request, res: Response) => {
@@ -9,7 +10,10 @@ export const register = async (req: Request, res: Response) => {
     const user = await userModel.create(req.body);
 
     const token = jwt.sign(
-      { id: user._id, role: user.role },
+      {
+        _id: user._id.toString(),
+        role: user.role,
+      },
       process.env.AUTH_SECRET as string,
       { expiresIn: "7d" },
     );
@@ -17,17 +21,20 @@ export const register = async (req: Request, res: Response) => {
     const userObject = user.toObject();
     const { password: _pwd, ...safeUser } = userObject;
 
+    // NOTE: shape now matches `login` -> data: { user, token }
     const response = {
       success: true,
       message: "User registered successfully",
-      data: safeUser,
-      token,
+      data: {
+        user: safeUser,
+        token,
+      },
     };
 
-    // Send response
     return res.status(201).json(response);
   } catch (error: any) {
-    console.log(error);
+    logger.error("Error in register", { error: error.message });
+
     // duplicate email error
     if (error.code === 11000) {
       return res.status(400).json({
@@ -35,7 +42,6 @@ export const register = async (req: Request, res: Response) => {
         message: "Email already exists",
       });
     }
-    console.log("✅ REGISTER HIT");
 
     return res.status(500).json({
       success: false,
@@ -74,16 +80,18 @@ export const login = async (req: Request, res: Response) => {
 
     //  Create JWT
     const token = jwt.sign(
-      { _id: user._id.toString(), createdAt: user.createdAt },
+      {
+        _id: user._id.toString(),
+        role: user.role,
+      },
       process.env.AUTH_SECRET as string,
       { expiresIn: "7d" },
     );
 
-    // send safe data (all exept pwd)
+    // send safe data (all except pwd)
     const userObject = user.toObject();
     const { password: _pwd, ...safeUser } = userObject;
 
-    // 7. Send response
     return res.status(200).json({
       success: true,
       message: "Login successful",
@@ -93,6 +101,8 @@ export const login = async (req: Request, res: Response) => {
       },
     });
   } catch (error: any) {
+    logger.error("Error in login", { error: error.message });
+
     return res.status(500).json({
       success: false,
       message: error.message || "Internal Server Error",
@@ -109,7 +119,7 @@ export const checkUser = async (req: Request, res: Response): Promise<void> => {
   if (!user) {
     res.status(400).json({
       success: false,
-      message: "user does not exist ",
+      message: "user does not exist",
     });
     return;
   }

@@ -13,6 +13,8 @@ import scheduleRouter from "./routers/shedule.js";
 import studentRouter from "./routers/student.js";
 import courseRouter from "./routers/cours.js";
 import paymentRouter from "./routers/payment.js";
+import dashboardRouter from "./routers/dashboard.js";
+import adminRouter from "./routers/admin.js";
 
 const app = express();
 
@@ -48,8 +50,10 @@ app.use("/teacher", teacherRouter);
 app.use("/rating", ratingRouter);
 app.use("/schedule", scheduleRouter);
 app.use("/student", studentRouter);
-app.use("/course", courseRouter);
+app.use("/courses", courseRouter);
 app.use("/payment", paymentRouter);
+app.use("/dashboard", dashboardRouter);
+app.use("/admin", adminRouter);
 
 // Health check
 app.get("/health", (_req, res) => {

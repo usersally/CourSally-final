@@ -15,10 +15,13 @@ import { idParamsSchema } from "../validation/utils.js";
 import { CheckAuth } from "../middlewares/auth.js";
 import { ratingSchema } from "../validation/rating.js";
 
+import { getTeacherCourses } from "../handlers/cours.js";
+
 const teacherRouter = Router();
 
 teacherRouter.get("/", validateQuerySchema(teacherQuerySchema), getTeachers);
 teacherRouter.get("/popular", getPopularTeachers);
+teacherRouter.get("/courses", CheckAuth, getTeacherCourses);
 teacherRouter.get("/:id", validateParamsSchema(idParamsSchema), getTeacherById);
 
 // Protected routes
