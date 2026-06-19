@@ -53,6 +53,6 @@ teacherSchema.index({
   subject: "text",
 });
 
-const teacherModel = userModel.discriminator("Teacher", teacherSchema);
+const teacherModel = userModel.discriminator("teacher", teacherSchema);
 
 export default teacherModel;

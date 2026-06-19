@@ -17,5 +17,5 @@ const studentSchema = new Schema({
   },
 });
 
-const studentModel = userModel.discriminator("Student", studentSchema);
+const studentModel = userModel.discriminator("student", studentSchema);
 export default studentModel;

@@ -1,4 +1,4 @@
-import mongoose, { Types } from "mongoose";
+import mongoose from "mongoose";
 import { RequestWithParsedQuery } from "../types/index.js";
 import {
   errorResponse,
@@ -20,11 +20,10 @@ interface teacherQuery {
   sortBy: string;
   sortOrder: 1 | -1;
   search?: string;
-  category?: string;
-  pricePerHour?: number;
-  pricePerMonth?: number;
+  subject?: string;
+  level?: string;
+  maxPrice?: number;
   status?: string;
-  availability?: boolean;
 }
 
 /**
@@ -39,11 +38,10 @@ export async function getTeachers(req: Request, res: Response): Promise<void> {
       sortBy = "createdAt",
       sortOrder = -1,
       search,
-      category,
-      pricePerHour,
-      pricePerMonth,
+      subject,
+      level,
+      maxPrice,
       status,
-      availability,
     } = parsedReq.parsedQuery;
 
     // Build filter
@@ -53,27 +51,25 @@ export async function getTeachers(req: Request, res: Response): Promise<void> {
       filter.$text = { $search: search };
     }
 
-    if (category) {
-      filter.category = new Types.ObjectId(category);
+    if (subject) {
+      filter.subject = subject; // matches if the subject array contains this value
     }
 
-    if (pricePerHour !== undefined || pricePerMonth !== undefined) {
-      filter["price per Hour"] = {};
+    if (level) {
+      filter.levels = level; // matches if the levels array contains this value
+    }
+
+    if (maxPrice !== undefined) {
+      filter.pricePerHour = { $lte: maxPrice };
     }
 
     if (status) {
       filter.status = status;
     }
 
-    if (availability) {
-      filter.status = availability;
-    }
-
     const [teachers, total] = await Promise.all([
       teacherModel
         .find(filter)
-        .populate("author", "name")
-        .populate("category", "name")
         .limit(limit)
         .skip((page - 1) * limit)
         .sort({ [sortBy]: sortOrder })
@@ -101,23 +97,24 @@ export async function getTeachers(req: Request, res: Response): Promise<void> {
 /**
  * Get single teacher by ID
  */
-export const getTeacherById = async (req: Request, res: Response) => {
-  const teacher = await teacherModel
-    .findById(req.params._id)
-    .populate("subject")
-    .populate("levels");
+export async function getTeacherById(
+  req: Request,
+  res: Response,
+): Promise<void> {
+  try {
+    const teacher = await teacherModel.findById(req.params.id);
 
-  if (!teacher) {
-    const error = new Error("Teacher not found");
-    (error as any).statusCode = 404;
-    throw error;
+    if (!teacher) {
+      errorResponse(res, null, "Teacher not found", StatusCodes.NOT_FOUND);
+      return;
+    }
+
+    successResponse(res, teacher, "Teacher fetched successfully");
+  } catch (error) {
+    logger.error("Error fetching teacher:", { error });
+    errorResponse(res, error, "Failed to fetch teacher");
   }
-
-  res.json({
-    success: true,
-    data: teacher,
-  });
-};
+}
 
 /**
  * Get popular teachers
@@ -131,7 +128,6 @@ export async function getPopularTeachers(
 
     const teachers = await teacherModel
       .find({ status: "available" })
-      .populate("teacher", "firsName")
       .sort({ ratingCount: -1 })
       .limit(limit);
 
@@ -143,14 +139,14 @@ export async function getPopularTeachers(
 }
 
 /**
- * Delete teacher(Admin only)
+ * Delete teacher (Admin only)
  */
 export async function deleteTeacher(
   req: Request,
   res: Response,
 ): Promise<void> {
   try {
-    const teacher = await teacherModel.findByIdAndDelete(req.params._id);
+    const teacher = await teacherModel.findByIdAndDelete(req.params.id);
 
     if (!teacher) {
       errorResponse(res, null, "Teacher not found", StatusCodes.NOT_FOUND);
@@ -160,33 +156,33 @@ export async function deleteTeacher(
     successResponse(res, null, "Teacher deleted successfully");
   } catch (error) {
     logger.error("Error deleting teacher:", { error });
-    errorResponse(res, error, `Failed to delete teacher ${req.params._id}`);
+    errorResponse(res, error, `Failed to delete teacher ${req.params.id}`);
   }
 }
 
 /**
- * Update teacher(Admin only)
+ * Update teacher (Admin only)
  */
-
 export async function updateTeacher(
   req: Request,
   res: Response,
 ): Promise<void> {
   try {
-    const teacher = await teacherModel
-      .findByIdAndUpdate(req.params._id, { $set: req.body }, { new: true })
-      .populate("")
-      .populate("");
+    const teacher = await teacherModel.findByIdAndUpdate(
+      req.params.id,
+      { $set: req.body },
+      { new: true },
+    );
 
     if (!teacher) {
-      errorResponse(res, null, "teacher not found", StatusCodes.NOT_FOUND);
+      errorResponse(res, null, "Teacher not found", StatusCodes.NOT_FOUND);
       return;
     }
 
-    successResponse(res, teacher, "teacher updated successfully");
+    successResponse(res, teacher, "Teacher updated successfully");
   } catch (error) {
     logger.error("Error updating teacher:", { error });
-    errorResponse(res, error, `Failed to update teacher ${req.params._id}`);
+    errorResponse(res, error, `Failed to update teacher ${req.params.id}`);
   }
 }
 
@@ -205,11 +201,16 @@ export async function addTeacherRating(
     const userId = authReq.user._id;
 
     if (!teacherId) {
-      errorResponse(res, null, "Teacher ID is required", StatusCodes.BAD_REQUEST);
+      errorResponse(
+        res,
+        null,
+        "Teacher ID is required",
+        StatusCodes.BAD_REQUEST,
+      );
       return;
     }
 
-    // Check if user has borrowed/purchased this book
+    // Check if user has booked this teacher
     const hasBooked = await Booking.exists({
       user: userId,
       teacher: teacherId,
@@ -220,7 +221,7 @@ export async function addTeacherRating(
       errorResponse(
         res,
         null,
-        "You can only rate teachers that you have booked ",
+        "You can only rate teachers that you have booked",
         StatusCodes.FORBIDDEN,
       );
       return;
@@ -246,6 +247,7 @@ export async function addTeacherRating(
         rating,
       });
     }
+
     // Update teacher's average rating
     const allRatings = await rateModel.find({ teacherId: teacherId });
     const avgRating =
