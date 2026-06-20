@@ -1,31 +1,33 @@
 import z from "zod";
 import mongoose from "mongoose";
+import { normalizeTime } from "../utils/time.js";
 
-//  ObjectId validator
 export const mongoIdSchema = z
   .string()
   .refine((val) => mongoose.Types.ObjectId.isValid(val), {
     message: "Invalid ObjectId",
   });
 
-//  create booking validation
+const timeSchema = z
+  .string()
+  .transform(normalizeTime)
+  .refine((val) => /^([01]\d|2[0-3]):([0-5]\d)$/.test(val), {
+    message: "Time must be HH:mm",
+  });
+
 export const createBookingSchema = z.object({
   teacherId: mongoIdSchema,
+  courseId: mongoIdSchema.optional(),
   studentId: mongoIdSchema.optional(),
 
   date: z.string().refine((val) => !isNaN(Date.parse(val)), {
     message: "Invalid date format",
   }),
 
-  startTime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, {
-    message: "startTime must be HH:mm",
-  }),
+  startTime: timeSchema,
+  endTime: timeSchema,
 
-  endTime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, {
-    message: "endTime must be HH:mm",
-  }),
-
-  price: z.number().positive(),
+  price: z.coerce.number().nonnegative(),
 
   paymentType: z.enum(["single", "monthly"]),
   paymentMethod: z.enum(["cash", "card"]),

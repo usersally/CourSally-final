@@ -1,4 +1,5 @@
 import { z } from "zod/v4";
+import { isPdfFile } from "./utils.js";
 
 const basicPasswordSchema = z
   .string()
@@ -84,17 +85,30 @@ export type ProfileUpdateInput = z.infer<typeof profileUpdateSchema>;
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
 
 // Registration schema (used by POST /auth/register)
-export const registerSchema = z.object({
-  firstName: z.string().min(1).max(70),
-  lastName: z.string().min(1).max(70),
-  email: z.string().email("Email must be valid").trim().toLowerCase(),
-  password: basicPasswordSchema,
-  phoneNumber: z.string().min(1, "Phone number is required"),
-  role: z.enum(["student", "teacher"]),
-  CV: z.string().optional(),
-  cv: z.string().optional(),
-  avatar: z.string().optional(),
-});
+export const registerSchema = z
+  .object({
+    firstName: z.string().min(1).max(70),
+    lastName: z.string().min(1).max(70),
+    email: z.string().email("Email must be valid").trim().toLowerCase(),
+    password: basicPasswordSchema,
+    phoneNumber: z.string().min(1, "Phone number is required"),
+    role: z.enum(["student", "teacher"]),
+    CV: z.string().optional(),
+    cv: z.string().optional(),
+    avatar: z.string().optional(),
+  })
+  .refine(
+    (data) => {
+      if (data.role !== "teacher") return true;
+      const cvValue = data.cv ?? data.CV;
+      return Boolean(cvValue && isPdfFile(cvValue));
+    },
+    {
+      message:
+        "CV is required for teachers and must be a PDF file (upload the document, not just the filename)",
+      path: ["cv"],
+    },
+  );
 
 // For backward compatibility
 const userSchema = registerSchema;

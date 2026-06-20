@@ -4,7 +4,7 @@ import Booking from "../models/booking.js";
 import teacherModel from "../models/teacher.js";
 import userModel from "../models/user.js";
 
-export const getDashboard = async (req: Request, res: Response) => {
+export const getDashboard = async (_req: Request, res: Response) => {
   try {
     const [
       totalCourses,

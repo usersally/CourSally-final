@@ -5,7 +5,10 @@ export const mongoIdSchema = z
   .regex(/^[a-f\d]{24}$/i, "Invalid MongoDB ID format");
 
 export const isPdfFile = (value: string): boolean => {
-  return value.toLowerCase().endsWith(".pdf");
+  const trimmed = value.trim();
+  if (trimmed.startsWith("data:application/pdf")) return true;
+  if (trimmed.startsWith("data:application/octet-stream")) return true;
+  return trimmed.toLowerCase().endsWith(".pdf");
 };
 // validate pdf
 export const createUserSchema = z

@@ -7,13 +7,14 @@ import {
 } from "../handlers/booking.js";
 import { validateBodySchema } from "../middlewares/validations.js";
 import { createBookingSchema } from "../validation/booking.js";
-import { CheckAuth } from "../middlewares/auth.js";
+import { CheckAuth, isStudent } from "../middlewares/auth.js";
 
 const bookingRouter = Router();
 
 bookingRouter.post(
   "/",
   CheckAuth,
+  isStudent,
   validateBodySchema(createBookingSchema),
   createBooking,
 );

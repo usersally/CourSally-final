@@ -2,6 +2,8 @@ import type { Request, Response } from "express";
 import Booking from "../models/booking.js";
 import { AuthenticatedRequest } from "../types/express.js";
 import teacherModel from "../models/teacher.js";
+import { Course } from "../models/cours.js";
+import { normalizeTime, weekdayFromDateString } from "../utils/time.js";
 
 function mapBooking(doc: Record<string, unknown>) {
   const teacher = doc.teacherId as Record<string, unknown> | null;
@@ -53,6 +55,55 @@ export const createBooking = async (req: Request, res: Response) => {
         message: "Teacher not found or not available",
       });
       return;
+    }
+
+    const bookingDate = new Date(date);
+    bookingDate.setHours(12, 0, 0, 0);
+
+    if (courseId) {
+      const course = await Course.findOne({
+        _id: courseId,
+        teacher: teacherId,
+        isPublished: true,
+      });
+
+      if (!course) {
+        res.status(400).json({
+          success: false,
+          message: "Course not found or not available for booking",
+        });
+        return;
+      }
+
+      if (!course.schedule?.length) {
+        res.status(400).json({
+          success: false,
+          message: "This course has no posted sessions yet",
+        });
+        return;
+      }
+
+      const normalizedStart = normalizeTime(startTime);
+      const normalizedEnd = normalizeTime(endTime);
+      const dateWeekday = weekdayFromDateString(
+        typeof date === "string" ? date : String(date),
+      );
+
+      const matchesPostedSlot = course.schedule.some(
+        (slot: { day: string; startTime: string; endTime: string }) =>
+          slot.day === dateWeekday &&
+          normalizeTime(slot.startTime) === normalizedStart &&
+          normalizeTime(slot.endTime) === normalizedEnd,
+      );
+
+      if (!matchesPostedSlot) {
+        res.status(400).json({
+          success: false,
+          message:
+            "You can only book sessions posted by the teacher for this course",
+        });
+        return;
+      }
     }
 
     const existing = await Booking.findOne({ teacherId, date, startTime });

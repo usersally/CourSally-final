@@ -10,6 +10,14 @@ import {
   updateUserRole,
   updateTeacherCvStatus,
 } from "../handlers/admin.js";
+import {
+  getReports,
+  updateReportStatus,
+} from "../handlers/report.js";
+import { validateBodySchema } from "../middlewares/validations.js";
+import {
+  updateReportSchema,
+} from "../validation/report.js";
 
 const adminRouter = Router();
 
@@ -30,5 +38,13 @@ adminRouter.delete("/courses/:id", deleteCourseAdmin);
 
 // Teacher CV approval
 adminRouter.patch("/teachers/:id/cv-status", updateTeacherCvStatus);
+
+// Reports (admin)
+adminRouter.get("/reports", getReports);
+adminRouter.patch(
+  "/reports/:id",
+  validateBodySchema(updateReportSchema),
+  updateReportStatus,
+);
 
 export default adminRouter;
