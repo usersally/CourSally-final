@@ -67,8 +67,8 @@ export const getTeacherRatings = async (req: Request, res: Response) => {
     const { teacherId } = req.params;
 
     const ratings = await rateModel
-      .find({ tecaher: teacherId })
-      .populate("student", "userName")
+      .find({ teacherId: teacherId })
+      .populate("ratedBy", "firstName lastName userName")
       .sort({ createdAt: -1 });
 
     res.json({

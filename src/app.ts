@@ -15,6 +15,8 @@ import courseRouter from "./routers/cours.js";
 import paymentRouter from "./routers/payment.js";
 import dashboardRouter from "./routers/dashboard.js";
 import adminRouter from "./routers/admin.js";
+import messageRouter from "./routers/message.js";
+import reportRouter from "./routers/report.js";
 
 const app = express();
 
@@ -54,6 +56,8 @@ app.use("/courses", courseRouter);
 app.use("/payment", paymentRouter);
 app.use("/dashboard", dashboardRouter);
 app.use("/admin", adminRouter);
+app.use("/messages", messageRouter);
+app.use("/reports", reportRouter);
 
 // Health check
 app.get("/health", (_req, res) => {

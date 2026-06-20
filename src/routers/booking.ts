@@ -7,12 +7,19 @@ import {
 } from "../handlers/booking.js";
 import { validateBodySchema } from "../middlewares/validations.js";
 import { createBookingSchema } from "../validation/booking.js";
+import { CheckAuth, isStudent } from "../middlewares/auth.js";
 
 const bookingRouter = Router();
 
-bookingRouter.post("/", validateBodySchema(createBookingSchema), createBooking);
-bookingRouter.get("/", getBookings);
-bookingRouter.patch("/:id/cancel", cancelBooking);
-bookingRouter.delete("/:id", deleteBooking);
+bookingRouter.post(
+  "/",
+  CheckAuth,
+  isStudent,
+  validateBodySchema(createBookingSchema),
+  createBooking,
+);
+bookingRouter.get("/", CheckAuth, getBookings);
+bookingRouter.patch("/:id/cancel", CheckAuth, cancelBooking);
+bookingRouter.delete("/:id", CheckAuth, deleteBooking);
 
 export default bookingRouter;

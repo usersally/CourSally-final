@@ -4,33 +4,23 @@ import userModel from "./user.js";
 
 const teacherSchema = new Schema<ITeacher>(
   {
-    subject: [
-      {
-        type: String,
-        required: true,
-      },
-    ],
+    subject: [String],
     cv: {
       type: String,
-      required: true,
+      default: "pending",
     },
     bio: {
       type: String,
-      required: true,
+      default: "Profile pending",
     },
-    levels: [
-      {
-        type: String,
-        required: true,
-      },
-    ],
+    levels: [String],
     pricePerHour: {
       type: Number,
-      required: true,
+      default: 0,
     },
     pricePerMonth: {
       type: Number,
-      required: true,
+      default: 0,
     },
     availability: [
       {
@@ -43,6 +33,11 @@ const teacherSchema = new Schema<ITeacher>(
       type: Boolean,
       default: true,
     },
+    cvStatus: {
+      type: String,
+      enum: ["pending", "approved", "rejected"],
+      default: "pending",
+    },
   },
   { timestamps: true },
 );
@@ -53,6 +48,6 @@ teacherSchema.index({
   subject: "text",
 });
 
-const teacherModel = userModel.discriminator("Teacher", teacherSchema);
+const teacherModel = userModel.discriminator("teacher", teacherSchema);
 
 export default teacherModel;

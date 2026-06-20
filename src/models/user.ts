@@ -25,7 +25,7 @@ const userSchema = new Schema<IUserDocument>(
     avatar: String,
     role: {
       type: String,
-      enum: ["Student", "Teacher", "admin"],
+      enum: ["student", "teacher", "admin"],
       required: true,
     },
   },

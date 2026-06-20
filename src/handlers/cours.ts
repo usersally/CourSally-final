@@ -5,7 +5,35 @@ import { Course } from "../models/cours.js";
 //  HELPERS
 // ─────────────────────────────────────────────
 
-const TEACHER_FIELDS = "firstName lastName avatarUrl";
+const TEACHER_FIELDS = "firstName lastName avatar";
+
+function getUserId(req: Request): string {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const user = (req as any).user;
+  return (user._id ?? user.id).toString();
+}
+
+function normalizeCourseBody(body: Record<string, unknown>) {
+  const normalized = { ...body };
+
+  if (typeof normalized.schedule === "string") {
+    try {
+      normalized.schedule = JSON.parse(normalized.schedule);
+    } catch {
+      // keep original value if parsing fails
+    }
+  }
+
+  if (typeof normalized.price === "string") {
+    normalized.price = Number(normalized.price);
+  }
+
+  if (normalized.image === "") {
+    delete normalized.image;
+  }
+
+  return normalized;
+}
 
 // ─────────────────────────────────────────────
 //  CREATE — POST /api/courses
@@ -15,12 +43,11 @@ const TEACHER_FIELDS = "firstName lastName avatarUrl";
 // ─────────────────────────────────────────────
 export const createCourse = async (req: Request, res: Response) => {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const user = (req as any).user;
+    const body = normalizeCourseBody(req.body as Record<string, unknown>);
 
     const course = await Course.create({
-      ...req.body,
-      teacher: user.id,
+      ...body,
+      teacher: getUserId(req),
       // Courses are auto-published on creation — no admin approval needed.
       isPublished: true,
     });
@@ -42,7 +69,7 @@ export const createCourse = async (req: Request, res: Response) => {
 //  GET ALL (PUBLIC) — GET /api/courses
 //  Only returns published courses for the public catalogue.
 // ─────────────────────────────────────────────
-export const getCourses = async (req: Request, res: Response) => {
+export const getCourses = async (_req: Request, res: Response) => {
   try {
     const courses = await Course.find({ isPublished: true })
       .populate("teacher", TEACHER_FIELDS)
@@ -68,10 +95,7 @@ export const getCourses = async (req: Request, res: Response) => {
 // ─────────────────────────────────────────────
 export const getTeacherCourses = async (req: Request, res: Response) => {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const user = (req as any).user;
-
-    const courses = await Course.find({ teacher: user.id })
+    const courses = await Course.find({ teacher: getUserId(req) })
       .populate("teacher", TEACHER_FIELDS)
       .sort({ createdAt: -1 });
 
@@ -133,11 +157,10 @@ export const updateCourse = async (req: Request, res: Response) => {
       return;
     }
 
+    const userId = getUserId(req);
+
     // Ownership check — admin can bypass
-    if (
-      user.role !== "admin" &&
-      course.teacher.toString() !== user.id.toString()
-    ) {
+    if (user.role !== "admin" && course.teacher.toString() !== userId) {
       res.status(403).json({
         success: false,
         message: "You are not allowed to update this course",
@@ -145,9 +168,11 @@ export const updateCourse = async (req: Request, res: Response) => {
       return;
     }
 
+    const body = normalizeCourseBody(req.body as Record<string, unknown>);
+
     const updated = await Course.findByIdAndUpdate(
       req.params.id,
-      { $set: req.body },
+      { $set: body },
       { new: true, runValidators: true },
     ).populate("teacher", TEACHER_FIELDS);
 
@@ -180,11 +205,10 @@ export const deleteCourse = async (req: Request, res: Response) => {
       return;
     }
 
+    const userId = getUserId(req);
+
     // Ownership check — admin can bypass
-    if (
-      user.role !== "admin" &&
-      course.teacher.toString() !== user.id.toString()
-    ) {
+    if (user.role !== "admin" && course.teacher.toString() !== userId) {
       res.status(403).json({
         success: false,
         message: "You are not allowed to delete this course",
