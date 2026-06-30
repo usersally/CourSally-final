@@ -5,10 +5,16 @@ if (process.env.NODE_ENV === "development") {
   mongoose.set("debug", true);
 }
 
-export async function connectDB(): Promise<typeof mongoose> {
-  const uri = process.env.MONGODB_URI?.trim();
+function resolveMongoUri(): string {
+  const uri =
+    process.env.MONGODB_URI?.trim() ||
+    process.env.MONGO_URL?.trim() ||
+    process.env.MONGODB_URL?.trim();
+
   if (!uri) {
-    throw new Error("MONGODB_URI environment variable is not set");
+    throw new Error(
+      "MongoDB connection string is not set. Add MONGODB_URI (or MONGO_URL / MONGODB_URL) in Railway variables.",
+    );
   }
 
   if (uri.includes("localhost:3000") || uri.includes("127.0.0.1:3000")) {
@@ -19,25 +25,45 @@ export async function connectDB(): Promise<typeof mongoose> {
 
   const username = process.env.MONGODB_USERNAME?.trim();
   const password = process.env.MONGODB_PASSWORD?.trim();
-  const options: mongoose.ConnectOptions = {
-    dbName: process.env.MONGODB_DB_NAME,
-  };
 
-  if (username && password) {
-    options.auth = { username, password };
+  if (!username || !password || uri.includes("@")) {
+    return uri;
+  }
+
+  if (uri.startsWith("mongodb+srv://")) {
+    return uri.replace(
+      "mongodb+srv://",
+      `mongodb+srv://${encodeURIComponent(username)}:${encodeURIComponent(password)}@`,
+    );
+  }
+
+  if (uri.startsWith("mongodb://")) {
+    return uri.replace(
+      "mongodb://",
+      `mongodb://${encodeURIComponent(username)}:${encodeURIComponent(password)}@`,
+    );
+  }
+
+  return uri;
+}
+
+export async function connectDB(): Promise<typeof mongoose> {
+  const uri = resolveMongoUri();
+  const dbName = process.env.MONGODB_DB_NAME?.trim();
+
+  const options: mongoose.ConnectOptions = {};
+  if (dbName) {
+    options.dbName = dbName;
   }
 
   try {
     const connection = await mongoose.connect(uri, options);
 
-    logger.info("MongoDB connected");
-    console.log("MongoDB connected");
+    logger.info("MongoDB connected", { dbName: dbName || "(from URI)" });
 
     return connection;
   } catch (err) {
-    const errorMessage = err instanceof Error ? err.message : "Unknown error";
-    logger.error("MongoDB connection error", { error: errorMessage });
-    console.error("MongoDB connection error:", err);
+    logger.error("MongoDB connection error", { error: err });
     throw err;
   }
 }

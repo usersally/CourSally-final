@@ -1,3 +1,5 @@
+import { formatError } from "./formatError.js";
+
 const LOG_LEVELS = {
   ERROR: "ERROR",
   WARN: "WARN",
@@ -18,6 +20,21 @@ interface LogEntry {
  * Internal log function
  * Formats and outputs log entries
  */
+function serializeMeta(meta: Record<string, unknown>): Record<string, unknown> {
+  const serialized: Record<string, unknown> = {};
+
+  for (const [key, value] of Object.entries(meta)) {
+    if (value instanceof Error || key === "error") {
+      serialized[key] = formatError(value);
+      continue;
+    }
+
+    serialized[key] = value;
+  }
+
+  return serialized;
+}
+
 function log(
   level: LogLevel,
   message: string,
@@ -28,7 +45,7 @@ function log(
     timestamp,
     level,
     message,
-    ...meta,
+    ...serializeMeta(meta),
   };
 
   if (process.env.NODE_ENV === "development") {
