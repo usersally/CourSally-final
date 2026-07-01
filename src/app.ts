@@ -20,23 +20,35 @@ import reportRouter from "./routers/report.js";
 
 const app = express();
 
+function isOriginAllowed(origin: string | undefined): boolean {
+  if (!origin) return true;
+
+  const allowedOrigins = (process.env.FRONTEND_DOMAIN || "http://localhost:3000")
+    .split(",")
+    .map((o) => o.trim())
+    .filter(Boolean);
+
+  if (allowedOrigins.includes(origin)) return true;
+
+  // Vercel production + preview deployments
+  if (/^https:\/\/[a-z0-9-]+\.vercel\.app$/i.test(origin)) return true;
+
+  return false;
+}
+
 // middlewares
 app.use(helmet());
-const allowedOrigins = (process.env.FRONTEND_DOMAIN || "http://localhost:3000")
-  .split(",")
-  .map((o) => o.trim());
-
 app.use(
   cors({
     credentials: true,
     origin: (origin, callback) => {
-      console.log("Origin:", origin);
-
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error(`Cors: origin ${origin} not allowed`));
+      if (isOriginAllowed(origin)) {
+        callback(null, origin ?? true);
+        return;
       }
+
+      console.warn(`CORS blocked origin: ${origin}`);
+      callback(null, false);
     },
   }),
 );
