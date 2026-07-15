@@ -1,5 +1,4 @@
 import express from "express";
-
 import { errorHandler } from "./middlewares/errorHandler.js";
 import authRouter from "./routers/auth.js";
 import helmet from "helmet";
@@ -23,21 +22,37 @@ const app = express();
 function isOriginAllowed(origin: string | undefined): boolean {
   if (!origin) return true;
 
-  const allowedOrigins = (process.env.FRONTEND_DOMAIN || "http://localhost:3000")
+  const allowedOrigins = (
+    process.env.FRONTEND_DOMAIN || "http://localhost:3000"
+  )
     .split(",")
     .map((o) => o.trim())
     .filter(Boolean);
 
+  // Check exact matches from environment variable
   if (allowedOrigins.includes(origin)) return true;
 
-  // Vercel production + preview deployments
+  // Allow all Vercel deployments (production + preview)
   if (/^https:\/\/[a-z0-9-]+\.vercel\.app$/i.test(origin)) return true;
 
+  // Allow all Railway deployments (if needed for internal calls)
+  if (/^https:\/\/[a-z0-9-]+\.up\.railway\.app$/i.test(origin)) return true;
+
+  // Allow localhost for development
+  if (/^http:\/\/localhost:\d+$/i.test(origin)) return true;
+
+  // Log blocked origins for debugging
+  console.warn(`CORS blocked origin: ${origin}`);
   return false;
 }
 
-// middlewares
-app.use(helmet());
+// Middlewares
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" }, // Add this for CORS
+  }),
+);
+
 app.use(
   cors({
     credentials: true,
@@ -46,12 +61,15 @@ app.use(
         callback(null, origin ?? true);
         return;
       }
-
-      console.warn(`CORS blocked origin: ${origin}`);
-      callback(null, false);
+      callback(new Error("Not allowed by CORS"));
     },
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+    exposedHeaders: ["Authorization"],
+    maxAge: 86400, // 24 hours
   }),
 );
+
 if (process.env.NODE_ENV === "development") app.use(morgan("dev"));
 
 app.use(express.json({ limit: "10mb" }));
@@ -71,12 +89,13 @@ app.use("/admin", adminRouter);
 app.use("/messages", messageRouter);
 app.use("/reports", reportRouter);
 
-// Health check
+// Health check - Important for debugging
 app.get("/health", (_req, res) => {
   res.json({
     success: true,
     message: "Server is running",
     timestamp: new Date().toISOString(),
+    cors: process.env.FRONTEND_DOMAIN || "http://localhost:3000",
   });
 });
 
@@ -88,7 +107,7 @@ app.use((req, res) => {
   });
 });
 
-//  Error handling
+// Error handling
 app.use(errorHandler);
 
 export default app;
