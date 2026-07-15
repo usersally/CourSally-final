@@ -4,6 +4,7 @@ import { formatError } from "./utils/formatError.js";
 import { connectDB } from "./services/db.js";
 import app from "./app.js";
 
+// Railway provides PORT environment variable
 const PORT = Number(process.env.PORT) || 5000;
 
 function validateEnv(): void {
@@ -33,8 +34,9 @@ async function startServer(): Promise<void> {
     validateEnv();
     await connectDB();
 
+    // Listen on all interfaces for Railway
     const server = app.listen(PORT, "0.0.0.0", () => {
-      logger.info(`✅ Server is running on http://localhost:${PORT}`);
+      logger.info(`✅ Server is running on port ${PORT}`);
       logger.info(
         `✅ CORS enabled for: ${process.env.FRONTEND_DOMAIN || "http://localhost:3000"}`,
       );
@@ -42,12 +44,9 @@ async function startServer(): Promise<void> {
       logger.info(`✅ Health check: http://localhost:${PORT}/health`);
     });
 
-    // Handle server errors
     server.on("error", (error: any) => {
       if (error.code === "EADDRINUSE") {
-        logger.error(
-          `❌ Port ${PORT} is already in use. Please free the port or use a different one.`,
-        );
+        logger.error(`❌ Port ${PORT} is already in use.`);
         process.exit(1);
       } else {
         logger.error("❌ Server error:", { error });
@@ -61,7 +60,6 @@ async function startServer(): Promise<void> {
   }
 }
 
-// Handle process termination gracefully
 process.on("SIGTERM", () => {
   logger.info("SIGTERM signal received. Closing server...");
   process.exit(0);
