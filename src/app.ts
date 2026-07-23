@@ -35,8 +35,8 @@ function isOriginAllowed(origin: string | undefined): boolean {
   // Allow all Vercel deployments (production + preview)
   if (/^https:\/\/[a-z0-9-]+\.vercel\.app$/i.test(origin)) return true;
 
-  // Allow all Railway deployments (if needed for internal calls)
-  if (/^https:\/\/[a-z0-9-]+\.up\.railway\.app$/i.test(origin)) return true;
+  // Allow all Render deployments (if needed for internal calls)
+  if (/^https:\/\/[a-z0-9-]+\.onrender\.com$/i.test(origin)) return true;
 
   // Allow localhost for development
   if (/^http:\/\/localhost:\d+$/i.test(origin)) return true;
